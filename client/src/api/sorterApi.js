@@ -6,7 +6,7 @@ export const sorterApi = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: '/right/',}),
     tagTypes: ["Element"],
     endpoints: (builder) => ({
-        getAll: builder.query({
+        getAll: builder.infiniteQuery({
             query: ({ pageParam }) => ({
                 infiniteQueryOptions: {
                     initialPageParam: 0,

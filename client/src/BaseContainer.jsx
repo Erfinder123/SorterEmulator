@@ -1,9 +1,17 @@
 import { useState } from 'react';
 import { useAddElementMutation } from "./api/baseApi.js";
 
-export function BaseContainer({ elements, selectedId, onSelect }) {
+export function BaseContainer({ elements, selectedId, onSelect, onLoadMore }) {
     const [id, setId] = useState('');
     const [addElementMutation] = useAddElementMutation();
+
+    function handleScroll(event) {
+        const { scrollTop, clientHeight, scrollHeight } = event.currentTarget;
+
+        if (scrollTop + clientHeight >= scrollHeight - 40) {
+            onLoadMore();
+        }
+    }
 
     async function addElement(event) {
         event.preventDefault();
@@ -39,7 +47,7 @@ export function BaseContainer({ elements, selectedId, onSelect }) {
                 />
                 <button type="submit">Добавить</button>
             </form>
-            <div className="elements-list">
+            <div className="elements-list" onScroll={handleScroll}>
                 {elements.map(element => (
                     <div
                         className={`element-row${selectedId === element.id ? ' selected' : ''}`}

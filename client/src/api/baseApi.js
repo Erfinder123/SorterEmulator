@@ -6,10 +6,18 @@ export const baseApi = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: '/left/',}),
     tagTypes: ["Element"],
     endpoints: (builder) => ({
-        getAll: builder.query({
-            query: () => ({
+        getAll: builder.infiniteQuery({
+            infiniteQueryOptions: {
+                initialPageParam: 0,
+                getNextPageParam: (lastPage, allPages, lastPageParam) =>
+                    lastPage.length === 20
+                        ? lastPageParam + 20
+                        : undefined,
+            },
+            query: ({ pageParam }) => ({
                 url: '',
                 method: "GET",
+                params: { offset: pageParam },
             }),
             providesTags: ["Element"],
         }),
@@ -37,7 +45,7 @@ export const baseApi = createApi({
 });
 
 export const {
-    useGetAllQuery,
+    useGetAllInfiniteQuery,
     useAddElementMutation,
     useMoveElementMutation,
 } = baseApi

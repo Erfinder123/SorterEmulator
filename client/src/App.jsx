@@ -3,36 +3,37 @@ import { useState } from "react";
 import { BaseContainer } from "./BaseContainer.jsx";
 import { SortedContainer } from "./SortedContainer.jsx";
 import { ControlButtons } from "./ControlButtons.jsx";
-import { useGetAllQuery as leftGetAll } from "./api/baseApi.js";
-import { useGetAllQuery as rightGetAll } from "./api/sorterApi.js";
+import { useGetAllInfiniteQuery as leftGetAll } from "./api/baseApi.js";
+import { useGetAllInfiniteQuery as rightGetAll } from "./api/sorterApi.js";
 
 function App() {
-    const { data: leftElements = [],  refetch: refetchLeft } = leftGetAll();
-    const [, setLeftElements] = useState([]);
-    const { data: rightElements = [],  refetch: refetchRight } = rightGetAll();
-    const [, setRightElements] = useState([]);
+    const { data: leftData,
+            refetch: refetchLeft,
+            fetchNextPage: fetchNextLeft,
+            hasNextPage: hasNextLeft,
+            isFetching: fetchingLeft,} = leftGetAll();
+    const { data: rightData,
+            refetch: refetchRight,
+            fetchNextPage: fetchNextRight,
+            hasNextPage: hasNextRight,
+            isFetching: fetchingRight, } = rightGetAll();
+
+    const leftElements = leftData?.pages.flat() ?? [];
+    const rightElements = rightData?.pages.flat() ?? [];
 
     const [selectedLeftId, setSelectedLeftId] = useState(null);
     const [selectedRightId, setSelectedRightId] = useState(null);
 
-    function moveRight() {
-        if (selectedLeftId === null) return;
-
-        setLeftElements(elements =>
-            elements.filter(element => element !== selectedLeftId)
-        );
-
-        setSelectedLeftId(null);
+    function loadMoreLeft() {
+        if (hasNextLeft && !fetchingLeft) {
+            fetchNextLeft();
+        }
     }
 
-    function moveLeft() {
-        if (selectedRightId === null) return;
-
-        setRightElements(elements =>
-            elements.filter(element => element !== selectedRightId)
-        );
-
-        setSelectedRightId(null);
+    function loadMoreRight() {
+        if (hasNextRight && !fetchingRight) {
+            fetchNextRight();
+        }
     }
 
   return (
@@ -51,6 +52,7 @@ function App() {
                 elements={leftElements}
                 selectedId={selectedLeftId}
                 onSelect={setSelectedLeftId}
+                onLoadMore={loadMoreLeft}
             />
         </div>
         <div1 id="docs1">
@@ -68,6 +70,7 @@ function App() {
                 elements={rightElements}
                 selectedId={selectedRightId}
                 onSelect={setSelectedRightId}
+                onLoadMore={loadMoreRight}
             />
         </div>
       </section>
