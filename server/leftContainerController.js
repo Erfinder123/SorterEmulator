@@ -7,7 +7,12 @@ const leftRouter = Router();
 export const checkId = id => id == null;
 
 leftRouter.get('/', (req, res) => {
-    return res.status(200).json(leftContainer.getElements());
+    const offset = Number(req.query.offset ?? 0);
+
+    if (!Number.isSafeInteger(offset) || offset < 0) {
+        return res.status(400).send('Invalid offset!');
+    }
+    return res.status(200).json(leftContainer.getElements(offset, 20));
 })
 
 leftRouter.post('/add', (req, res) => {
@@ -24,7 +29,7 @@ leftRouter.post('/move', (req, res) => {
         rightContainer.addElement(result)
         return res.status(200).send('success');
     }
-    return res.status(400).send('Element this id not found!');
+    return res.status(404).send('Element this id not found!');
 })
 
 export default leftRouter;

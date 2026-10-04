@@ -7,9 +7,17 @@ export const sorterApi = createApi({
     tagTypes: ["Element"],
     endpoints: (builder) => ({
         getAll: builder.query({
-            query: () => ({
+            query: ({ pageParam }) => ({
+                infiniteQueryOptions: {
+                    initialPageParam: 0,
+                    getNextPageParam: (lastPage, allPages, lastPageParam) =>
+                        lastPage.length === 20
+                            ? lastPageParam + 20
+                            : undefined,
+                },
                 url: '',
                 method: "GET",
+                params: { offset: pageParam },
             }),
             providesTags: ["Element"],
         }),
@@ -22,11 +30,23 @@ export const sorterApi = createApi({
                 responseHandler: 'text'
             }),
             invalidatesTags: ["Element"],
+        }),
+
+        sortElements: builder.mutation({
+            query: ({ id, lastOneId }) => ({
+                url: `/sort/`,
+                params: { id },
+                method: "PATCH",
+                body: { id: lastOneId },
+                responseHandler: 'text'
+            }),
+            invalidatesTags: ["Element"],
         })
     }),
 });
 
 export const {
-    useGetAllQuery,
+    useGetAllInfiniteQuery,
     useMoveElementMutation,
+    useSortElementsMutation,
 } = sorterApi

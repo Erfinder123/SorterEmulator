@@ -6,7 +6,12 @@ import { checkId } from "./leftContainerController.js";
 const rightRouter = Router();
 
 rightRouter.get('/', (req, res) => {
-    return res.status(200).json(rightContainer.getElements());
+    const offset = Number(req.query.offset ?? 0);
+
+    if (!Number.isSafeInteger(offset) || offset < 0) {
+        return res.status(400).send('Invalid offset!');
+    }
+    return res.status(200).json(rightContainer.getElements(offset, 20));
 })
 
 rightRouter.post('/add', (req, res) => {
@@ -22,7 +27,13 @@ rightRouter.post('/move', (req, res) => {
         leftContainer.addElement(result)
         return res.status(200).send('success');
     }
-    return res.status(400).send('Element this id not found!');
+    return res.status(404).send('Element this id not found!');
+})
+
+rightRouter.patch('/sort', (req, res) => {
+    if (checkId(req.query?.id) ||  checkId(req.body?.id)) return res.status(400).send('Element id is required!');
+    if (rightContainer.sortElements(req.query.id, req.body.id)) return res.status(200).send('success');
+    return res.status(404).send('Element this id not found!');
 })
 
 export default rightRouter;

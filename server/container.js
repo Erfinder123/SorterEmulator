@@ -12,13 +12,13 @@ export class Container{
     }
 
     getElements(offset = 0, limit = 20) {
-        return this.getAllElements().filter(element => element.position === null)
+        return Array.from(this.getAllElements().values()).filter(element => element.position === null)
             .sort((a, b) => a.id - b.id)
             .slice(offset, offset + limit);
     }
 
     getAllElements() {
-        return Array.from(Container.#elements.values());
+        return Container.#elements;
     }
 
     moveElement(id) {
