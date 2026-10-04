@@ -4,9 +4,13 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    dedupe: ['react', 'react-dom'],
+  },
   server: {
     proxy: {
-      '/api': 'http://localhost:3000',
+      '/left': 'http://localhost:3000',
+      '/right': 'http://localhost:3000'
     },
   },
 })

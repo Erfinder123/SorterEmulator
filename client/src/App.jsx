@@ -1,120 +1,97 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
 import './App.css'
+import { useState } from "react";
+import { BaseContainer } from "./BaseContainer.jsx";
+import { SortedContainer } from "./SortedContainer.jsx";
+import { ControlButtons } from "./ControlButtons.jsx";
+import { useGetAllQuery as leftGetAll } from "./api/baseApi.js";
+import { useGetAllQuery as rightGetAll } from "./api/sorterApi.js";
 
 function App() {
-  const [count, setCount] = useState(0)
+    const { data: leftElements = [],  refetch: refetchLeft } = leftGetAll();
+    const [, setLeftElements] = useState([]);
+    const { data: rightElements = [],  refetch: refetchRight } = rightGetAll();
+    const [, setRightElements] = useState([]);
+
+    const [selectedLeftId, setSelectedLeftId] = useState(null);
+    const [selectedRightId, setSelectedRightId] = useState(null);
+
+    function moveRight() {
+        if (selectedLeftId === null) return;
+
+        setLeftElements(elements =>
+            elements.filter(element => element !== selectedLeftId)
+        );
+
+        setSelectedLeftId(null);
+    }
+
+    function moveLeft() {
+        if (selectedRightId === null) return;
+
+        setRightElements(elements =>
+            elements.filter(element => element !== selectedRightId)
+        );
+
+        setSelectedRightId(null);
+    }
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
+      <section id="header">
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
+          <h1>Эмулятор сортировки</h1>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
       </section>
 
       <div className="ticks"></div>
 
-      <section id="next-steps">
+      <section id="center">
         <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+            <BaseContainer
+                elements={leftElements}
+                selectedId={selectedLeftId}
+                onSelect={setSelectedLeftId}
+            />
         </div>
+        <div1 id="docs1">
+            <ControlButtons
+                selectedLeftId={selectedLeftId}
+                refetchLeft={refetchLeft}
+                onMovedRight={() => setSelectedLeftId(null)}
+                selectedRightId={selectedRightId}
+                refetchRight={refetchRight}
+                onMovedLeft={() => setSelectedRightId(null)}
+            />
+        </div1>
+        <div>
+            <SortedContainer
+                elements={rightElements}
+                selectedId={selectedRightId}
+                onSelect={setSelectedRightId}
+            />
+        </div>
+      </section>
+
+      <div className="ticks"></div>
+
+      <section id="footer">
         <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
           <ul>
             <li>
               <a href="https://github.com/vitejs/vite" target="_blank">
                 <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
+                    className="button-icon"
+                    role="presentation"
+                    aria-hidden="true"
                 >
                   <use href="/icons.svg#github-icon"></use>
                 </svg>
                 GitHub
               </a>
             </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
           </ul>
         </div>
       </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
     </>
   )
 }
