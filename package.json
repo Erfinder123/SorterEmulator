@@ -1,4 +1,11 @@
 {
+  "scripts": {
+    "start": "node server/index.js",
+    "build:render": "npm ci --include=dev && npm ci --prefix server --omit=dev && npm ci --prefix client --include=dev && npm run build --prefix client"
+  },
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "@reduxjs/toolkit": "^2.13.0",
     "react-redux": "^9.3.0"

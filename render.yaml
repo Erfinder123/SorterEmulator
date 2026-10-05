@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: sorter-emulator
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm run build:render
+    startCommand: npm start
+    healthCheckPath: /
