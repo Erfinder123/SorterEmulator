@@ -1,8 +1,9 @@
+import { Filter } from './Filter.jsx';
 import { useScrollList } from './useScrollList.js';
 import { useRef } from 'react';
 import { useSortElementsMutation } from './api/sorterApi.js';
 
-export function SortedContainer({ elements, selectedId, onSelect, onLoadMore, onLoadPrevious, direction, pageVersion, isFetching, onSorted }) {
+export function SortedContainer({ filter, onFilterChange, elements, selectedId, onSelect, onLoadMore, onLoadPrevious, direction, pageVersion, isFetching, onSorted }) {
     const draggId = useRef(null);
     const [sortElement, { isLoading }] = useSortElementsMutation();
 
@@ -20,7 +21,7 @@ export function SortedContainer({ elements, selectedId, onSelect, onLoadMore, on
 
         try {
             await sortElement({id, lastOneId}).unwrap();
-            await onSorted();
+            await onSorted(id, lastOneId);
         }
         catch { return; }
     }
@@ -28,6 +29,7 @@ export function SortedContainer({ elements, selectedId, onSelect, onLoadMore, on
     return (
         <>
             <h2>Отсортированный список</h2>
+            <Filter value={filter} onChange={onFilterChange} />
             <div className="elements-list1" ref={listRef} onScroll={handleScroll} onWheel={handleWheel}>
                 {elements.map(element => (
                     <div

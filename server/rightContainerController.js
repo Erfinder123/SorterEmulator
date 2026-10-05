@@ -7,23 +7,37 @@ const PAGE_SIZE = 20;
 const rightRouter = Router();
 
 rightRouter.get('/', async (req, res, next) => {
-    const { startId, afterId, beforeId } = req.query;
+    const { startId, afterId, beforeId, filter = '' } = req.query;
     const limit = Number(req.query.limit ?? PAGE_SIZE);
-    if ([startId, afterId, beforeId].some(id => id != null && typeof id !== 'string')) {
+    if ([startId, afterId, beforeId, filter].some(id => id != null && typeof id !== 'string')) {
         return res.status(400).send('Invalid cursor!');
     }
+    const clientId = req.get('X-Client-Id');
+    const key = clientId ? JSON.stringify(['get', 'right', clientId]) : null;
     try {
-        const result = await dataQueue.push(null, () =>
-            rightContainer.getElements({ startId, afterId, beforeId, limit })
+        const result = await dataQueue.pushLatest(key, () =>
+            rightContainer.getElements({ startId, afterId, beforeId, filter, limit })
         );
         return res.status(200).json(result);
-    } catch (error) { next(error); }
+    } catch (error) {
+        if (error.code === 'REQUEST_REPLACED') {
+            return res.status(409).json({ code: error.code });
+        }
+        next(error);
+    }
 });
 
 rightRouter.post('/add', async (req, res, next) => {
-    const id = req.body?.id;
-    if (checkId(id)) return res.status(400).send('Element id must contain only digits!');
-    if (!/^[0-9]+$/.test(String(id))) return res.status(400).send('Element id must contain only digits!');
+    const value = req.body?.id;
+    if (checkId(value)) return res.status(400).send('Element id must contain only digits!');
+    if (typeof value !== 'string' && typeof value !== 'number') {
+        return res.status(400).send('Element id must contain only digits!');
+    }
+    if (typeof value === 'number' && !Number.isSafeInteger(value)) {
+        return res.status(400).send('Element id must contain only digits!');
+    }
+    const id = String(value).trim().replace(/^0+/, '');
+    if (!/^[0-9]+$/.test(id)) return res.status(400).send('Element id must contain only digits!');
     try {
         const result = await addQueue.push(JSON.stringify(['add', 'right', id]), () => {
             if (!leftContainer.addElement(new Element(id))) return false;

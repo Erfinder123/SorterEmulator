@@ -20,6 +20,18 @@ export class RequestQueue {
         return promise;
     }
 
+    pushLatest(key, action) {
+        const existing = key === null ? undefined : this.#tasks.get(key);
+        if (existing) {
+            this.#tasks.delete(key);
+            existing.reject(Object.assign(new Error('Request replaced!'), {
+                status: 409,
+                code: 'REQUEST_REPLACED',
+            }));
+        }
+        return this.push(key, action);
+    }
+
     #flush() {
         const tasks = Array.from(this.#tasks.values());
         this.#tasks.clear();

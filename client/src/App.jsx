@@ -27,6 +27,8 @@ function App() {
       <section id="center">
         <div id="docs">
             <BaseContainer
+                filter={left.filter}
+                onFilterChange={value => { setSelectedLeftId(null); left.changeFilter(value); }}
                 elements={left.page.items}
                 onAdded={left.refetch}
                 selectedId={selectedLeftId}
@@ -50,8 +52,10 @@ function App() {
         </div>
         <div>
             <SortedContainer
+                filter={right.filter}
+                onFilterChange={value => { setSelectedRightId(null); right.changeFilter(value); }}
                 elements={right.page.items}
-                onSorted={right.refetch}
+                onSorted={right.refetchAfterSort}
                 selectedId={selectedRightId}
                 onSelect={setSelectedRightId}
                 onLoadMore={right.loadNext}

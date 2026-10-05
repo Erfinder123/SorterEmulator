@@ -133,6 +133,10 @@
   }
 }
 
+.filter {
+  margin-bottom: 16px;
+}
+
 .elements-list {
   height: 400px;
   overflow-y: auto;

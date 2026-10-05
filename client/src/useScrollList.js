@@ -7,7 +7,11 @@ export function useScrollList({ onLoadMore, onLoadPrevious, direction, pageVersi
     const ignoreScroll = useRef(false);
     useLayoutEffect(() => {
         const list = listRef.current;
-        if (!list || !direction) return;
+        if (!list) return;
+        if (!direction) {
+            list.scrollTop = 0;
+            return;
+        }
         ignoreScroll.current = true;
         list.scrollTop = direction === 'next'
             ? SCROLL_EDGE_OFFSET

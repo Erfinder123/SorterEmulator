@@ -52,9 +52,9 @@ export class Container {
         target.predecessor = element;
     }
 
-    getElements({ startId, afterId, beforeId, limit = PAGE_SIZE } = {}) {
+    getElements({ startId, afterId, beforeId, filter = '', limit = PAGE_SIZE } = {}) {
         const cursors = [startId, afterId, beforeId].filter(id => id != null);
-        if (cursors.length > 1 || !Number.isInteger(limit) || limit < 1 || limit > PAGE_SIZE) {
+        if (typeof filter !== 'string' || cursors.length > 1 || !Number.isInteger(limit) || limit < 1 || limit > PAGE_SIZE) {
             throw Object.assign(new Error('Invalid page parameters!'), { status: 400 });
         }
         let element;
@@ -69,18 +69,25 @@ export class Container {
 
         const items = [];
         while (element && items.length < limit) {
-            items.push(element);
+            if (String(element.id).includes(filter)) items.push(element);
             element = beforeId != null ? element.predecessor : element.descendant;
         }
         if (beforeId != null) items.reverse();
         const first = items[0];
         const last = items[items.length - 1];
+        function hasMatch(element, link) {
+            while (element) {
+                if (String(element.id).includes(filter)) return true;
+                element = element[link];
+            }
+            return false;
+        }
         return {
             items: items.map(item => ({ id: item.id, sort: item.sort })),
             firstId: first?.id ?? null,
             lastId: last?.id ?? null,
-            hasPrevious: Boolean(first?.predecessor),
-            hasNext: Boolean(last?.descendant),
+            hasPrevious: hasMatch(first?.predecessor, 'predecessor'),
+            hasNext: hasMatch(last?.descendant, 'descendant'),
         };
     }
 

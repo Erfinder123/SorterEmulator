@@ -1,9 +1,16 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { clientId } from './clientId.js';
 
 export const baseApi = createApi({
     reducerPath: "baseApi",
-    baseQuery: fetchBaseQuery({ baseUrl: '/left/',}),
+    baseQuery: fetchBaseQuery({
+        baseUrl: '/left/',
+        prepareHeaders: headers => {
+            headers.set('X-Client-Id', clientId);
+            return headers;
+        },
+    }),
     tagTypes: ["Element"],
     endpoints: (builder) => ({
         getPage: builder.query({

@@ -1,8 +1,9 @@
+import { Filter } from './Filter.jsx';
 import { useScrollList } from './useScrollList.js';
 import { useState } from 'react';
 import { useAddElementMutation } from "./api/baseApi.js";
 
-export function BaseContainer({ elements, selectedId, onSelect, onLoadMore, onLoadPrevious, direction, pageVersion, isFetching, onAdded }) {
+export function BaseContainer({ filter, onFilterChange, elements, selectedId, onSelect, onLoadMore, onLoadPrevious, direction, pageVersion, isFetching, onAdded }) {
     const [id, setId] = useState('');
     const [addElementMutation] = useAddElementMutation();
 
@@ -35,6 +36,7 @@ export function BaseContainer({ elements, selectedId, onSelect, onLoadMore, onLo
     return (
         <>
             <h2>Основной список</h2>
+            <Filter value={filter} onChange={onFilterChange} />
             <form onSubmit={addElement}>
                 <input
                     value={id}
