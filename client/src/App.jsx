@@ -73,7 +73,7 @@ function App() {
         <div id="social">
           <ul>
             <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
+              <a href="https://github.com/Erfinder123/SorterEmulator" target="_blank">
                 <svg
                     className="button-icon"
                     role="presentation"
