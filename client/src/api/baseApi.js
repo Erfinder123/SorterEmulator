@@ -28,6 +28,14 @@ export const baseApi = createApi({
             }),
         }),
 
+        fillElements: builder.mutation({
+            query: () => ({
+                url: '/fill',
+                method: 'POST',
+                responseHandler: 'text'
+            }),
+        }),
+
         moveElement: builder.mutation({
             query: (element) => ({
                 url: `/move`,
@@ -42,5 +50,6 @@ export const baseApi = createApi({
 export const {
     useLazyGetPageQuery,
     useAddElementMutation,
+    useFillElementsMutation,
     useMoveElementMutation,
 } = baseApi

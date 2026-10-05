@@ -1,11 +1,12 @@
 import { Filter } from './Filter.jsx';
 import { useScrollList } from './useScrollList.js';
 import { useState } from 'react';
-import { useAddElementMutation } from "./api/baseApi.js";
+import { useAddElementMutation, useFillElementsMutation } from "./api/baseApi.js";
 
 export function BaseContainer({ filter, onFilterChange, elements, selectedId, onSelect, onLoadMore, onLoadPrevious, direction, pageVersion, isFetching, onAdded }) {
     const [id, setId] = useState('');
     const [addElementMutation] = useAddElementMutation();
+    const [fillElementsMutation, { isLoading }] = useFillElementsMutation();
 
     const { listRef, handleScroll, handleWheel } = useScrollList({
         onLoadMore, onLoadPrevious, direction, pageVersion, isFetching,
@@ -23,6 +24,15 @@ export function BaseContainer({ filter, onFilterChange, elements, selectedId, on
             await onAdded();
         }
         catch {
+            setId('Не удалось добавить элемент');
+        }
+    }
+
+    async function fillElements() {
+        try {
+            await fillElementsMutation().unwrap();
+            await onAdded();
+        } catch {
             setId('Не удалось добавить элемент');
         }
     }
@@ -47,6 +57,9 @@ export function BaseContainer({ filter, onFilterChange, elements, selectedId, on
                 />
                 <button type="submit">Добавить</button>
             </form>
+            <button type="button" onClick={fillElements} disabled={isLoading}>
+                Добавить 1 000 000 элементов
+            </button>
             <div className="elements-list" ref={listRef} onScroll={handleScroll} onWheel={handleWheel}>
                 {elements.map(element => (
                     <div

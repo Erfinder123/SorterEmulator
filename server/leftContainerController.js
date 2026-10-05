@@ -3,6 +3,7 @@ import { Element } from './element.js';
 import { leftContainer, rightContainer, addQueue, dataQueue } from './index.js';
 
 const PAGE_SIZE = 20;
+const TOTAL_ELEMENTS = 1000000;
 const leftRouter = Router();
 
 export const checkId = id => id == null;
@@ -48,6 +49,17 @@ leftRouter.post('/add', async (req, res, next) => {
     }
     catch (error) {
         next(error); }
+});
+
+leftRouter.post('/fill', async (req, res, next) => {
+    try {
+        await addQueue.push('fill', () => {
+            for (let id = 1; id <= TOTAL_ELEMENTS; id++) {
+                leftContainer.addElement(new Element(String(id)));
+            }
+        });
+        return res.status(200).send('success');
+    } catch (error) { next(error); }
 });
 
 leftRouter.post('/move', async (req, res, next) => {
