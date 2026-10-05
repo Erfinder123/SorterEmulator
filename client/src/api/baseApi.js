@@ -6,20 +6,10 @@ export const baseApi = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: '/left/',}),
     tagTypes: ["Element"],
     endpoints: (builder) => ({
-        getAll: builder.infiniteQuery({
-            infiniteQueryOptions: {
-                initialPageParam: 0,
-                getNextPageParam: (lastPage, allPages, lastPageParam) =>
-                    lastPage.length === 20
-                        ? lastPageParam + 20
-                        : undefined,
-            },
-            query: ({ pageParam }) => ({
-                url: '',
-                method: "GET",
-                params: { offset: pageParam },
-            }),
-            providesTags: ["Element"],
+        getPage: builder.query({
+            query: params => ({ url: '', params }),
+            providesTags: ['Element'],
+            keepUnusedDataFor: 0,
         }),
 
         addElement: builder.mutation({
@@ -29,7 +19,6 @@ export const baseApi = createApi({
                 body: element,
                 responseHandler: 'text'
             }),
-            invalidatesTags: ["Element"],
         }),
 
         moveElement: builder.mutation({
@@ -39,13 +28,12 @@ export const baseApi = createApi({
                 body: element,
                 responseHandler: 'text'
             }),
-            invalidatesTags: ["Element"],
         })
     }),
 });
 
 export const {
-    useGetAllInfiniteQuery,
+    useLazyGetPageQuery,
     useAddElementMutation,
     useMoveElementMutation,
 } = baseApi

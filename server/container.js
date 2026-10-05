@@ -1,30 +1,90 @@
-export class Container{
+const PAGE_SIZE = 20;
 
-    static #elements = new Map()
+export class Container {
+    static #elements = new Map();
+    #startId = null;
+    #endId = null;
 
-    addElement(element)
-    {
-        if(!Container.#elements.has(element.id)) {
-            Container.#elements.set(element.id, element)
-            return true
-        }
-        return false
+    constructor(sort = false) {
+        this.sort = sort;
     }
 
-    getElements(offset = 0, limit = 20) {
-        return Array.from(this.getAllElements().values()).filter(element => element.position === null)
-            .sort((a, b) => a.id - b.id)
-            .slice(offset, offset + limit);
+    addElement(element) {
+        if (Container.#elements.has(element.id)) return false;
+        Container.#elements.set(element.id, element);
+        this.pushElement(element);
+        return true;
+    }
+
+    pushElement(element) {
+        if (element.predecessor || element.descendant || this.#endId === element.id) return element;
+        const end = this.#endId === null ? null : Container.#elements.get(this.#endId);
+        if (end) end.descendant = element;
+        element.predecessor = end;
+        element.descendant = null;
+        element.sort = this.sort;
+        if (this.#startId === null) this.#startId = element.id;
+        this.#endId = element.id;
+        return element;
+    }
+
+    detachElement(id) {
+        const element = Container.#elements.get(id);
+        if (!element || element.sort !== this.sort) return null;
+        const previous = element.predecessor;
+        const next = element.descendant;
+        if (previous) previous.descendant = next;
+        if (next) next.predecessor = previous;
+        if (this.#startId === id) this.#startId = next?.id ?? null;
+        if (this.#endId === id) this.#endId = previous?.id ?? null;
+        element.predecessor = null;
+        element.descendant = null;
+        return element;
+    }
+
+    insertBefore(element, target) {
+        const previous = target.predecessor;
+        element.predecessor = previous;
+        element.descendant = target;
+        element.sort = this.sort;
+        if (previous) previous.descendant = element;
+        else this.#startId = element.id;
+        target.predecessor = element;
+    }
+
+    getElements({ startId, afterId, beforeId, limit = PAGE_SIZE } = {}) {
+        const cursors = [startId, afterId, beforeId].filter(id => id != null);
+        if (cursors.length > 1 || !Number.isInteger(limit) || limit < 1 || limit > PAGE_SIZE) {
+            throw Object.assign(new Error('Invalid page parameters!'), { status: 400 });
+        }
+        let element;
+        if (cursors.length) {
+            element = Container.#elements.get(cursors[0]);
+            if (!element || element.sort !== this.sort) {
+                throw Object.assign(new Error('Page cursor no longer exists in this container!'), { status: 409 });
+            }
+            if (afterId != null) element = element.descendant;
+            if (beforeId != null) element = element.predecessor;
+        } else element = Container.#elements.get(this.#startId);
+
+        const items = [];
+        while (element && items.length < limit) {
+            items.push(element);
+            element = beforeId != null ? element.predecessor : element.descendant;
+        }
+        if (beforeId != null) items.reverse();
+        const first = items[0];
+        const last = items[items.length - 1];
+        return {
+            items: items.map(item => ({ id: item.id, sort: item.sort })),
+            firstId: first?.id ?? null,
+            lastId: last?.id ?? null,
+            hasPrevious: Boolean(first?.predecessor),
+            hasNext: Boolean(last?.descendant),
+        };
     }
 
     getAllElements() {
         return Container.#elements;
-    }
-
-    moveElement(id) {
-        if(Container.#elements.has(id)) {
-            return Container.#elements.get(id)
-        }
-        return null
     }
 }

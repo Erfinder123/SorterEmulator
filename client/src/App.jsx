@@ -1,40 +1,18 @@
+import { usePageElements } from './usePageElements.js';
 import './App.css'
 import { useState } from "react";
 import { BaseContainer } from "./BaseContainer.jsx";
 import { SortedContainer } from "./SortedContainer.jsx";
 import { ControlButtons } from "./ControlButtons.jsx";
-import { useGetAllInfiniteQuery as leftGetAll } from "./api/baseApi.js";
-import { useGetAllInfiniteQuery as rightGetAll } from "./api/sorterApi.js";
+import { useLazyGetPageQuery as leftGetPage } from "./api/baseApi.js";
+import { useLazyGetPageQuery as rightGetPage } from "./api/sorterApi.js";
 
 function App() {
-    const { data: leftData,
-            refetch: refetchLeft,
-            fetchNextPage: fetchNextLeft,
-            hasNextPage: hasNextLeft,
-            isFetching: fetchingLeft,} = leftGetAll();
-    const { data: rightData,
-            refetch: refetchRight,
-            fetchNextPage: fetchNextRight,
-            hasNextPage: hasNextRight,
-            isFetching: fetchingRight, } = rightGetAll();
-
-    const leftElements = leftData?.pages.flat() ?? [];
-    const rightElements = rightData?.pages.flat() ?? [];
+    const left = usePageElements(leftGetPage);
+    const right = usePageElements(rightGetPage);
 
     const [selectedLeftId, setSelectedLeftId] = useState(null);
     const [selectedRightId, setSelectedRightId] = useState(null);
-
-    function loadMoreLeft() {
-        if (hasNextLeft && !fetchingLeft) {
-            fetchNextLeft();
-        }
-    }
-
-    function loadMoreRight() {
-        if (hasNextRight && !fetchingRight) {
-            fetchNextRight();
-        }
-    }
 
   return (
     <>
@@ -49,28 +27,38 @@ function App() {
       <section id="center">
         <div id="docs">
             <BaseContainer
-                elements={leftElements}
+                elements={left.page.items}
+                onAdded={left.refetch}
                 selectedId={selectedLeftId}
                 onSelect={setSelectedLeftId}
-                onLoadMore={loadMoreLeft}
+                onLoadMore={left.loadNext}
+                onLoadPrevious={left.loadPrevious}
+                direction={left.direction}
+                pageVersion={left.pageVersion}
+                isFetching={left.isFetching}
             />
         </div>
-        <div1 id="docs1">
+        <div id="docs1">
             <ControlButtons
                 selectedLeftId={selectedLeftId}
-                refetchLeft={refetchLeft}
-                onMovedRight={() => setSelectedLeftId(null)}
+                refetchLeft={left.refetch}
+                onMovedRight={() => { left.prepareMove(selectedLeftId); setSelectedLeftId(null); }}
                 selectedRightId={selectedRightId}
-                refetchRight={refetchRight}
-                onMovedLeft={() => setSelectedRightId(null)}
+                refetchRight={right.refetch}
+                onMovedLeft={() => { right.prepareMove(selectedRightId); setSelectedRightId(null); }}
             />
-        </div1>
+        </div>
         <div>
             <SortedContainer
-                elements={rightElements}
+                elements={right.page.items}
+                onSorted={right.refetch}
                 selectedId={selectedRightId}
                 onSelect={setSelectedRightId}
-                onLoadMore={loadMoreRight}
+                onLoadMore={right.loadNext}
+                onLoadPrevious={right.loadPrevious}
+                direction={right.direction}
+                pageVersion={right.pageVersion}
+                isFetching={right.isFetching}
             />
         </div>
       </section>

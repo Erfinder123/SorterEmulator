@@ -1,21 +1,10 @@
-import { useEffect } from "react";
 import { useMoveElementMutation as rightMove } from "./api/baseApi.js";
 import { useMoveElementMutation as leftMove } from "./api/sorterApi.js";
 
 export function ControlButtons({ selectedLeftId, refetchLeft, onMovedRight, selectedRightId, refetchRight, onMovedLeft }) {
-    const [moveRightElement, { isLoading: loadingLeft, isSuccess: successLeft, reset: resetLeft }] = rightMove();
-    const [moveLeftElement, { isLoading: loadingRight, isSuccess: successRight, reset: resetRight }] = leftMove();
+    const [moveRightElement, { isLoading: loadingLeft }] = rightMove();
+    const [moveLeftElement, { isLoading: loadingRight }] = leftMove();
 
-    useEffect(() => {
-        if (successLeft ) {
-            refetchRight();
-            resetLeft();
-        }
-        if (successRight) {
-            refetchLeft();
-            resetRight();
-        }
-    }, [successLeft, refetchLeft, resetLeft, refetchRight, successRight, resetRight]);
 
     async function moveRight() {
         if (selectedLeftId === null) return;
@@ -23,8 +12,9 @@ export function ControlButtons({ selectedLeftId, refetchLeft, onMovedRight, sele
         try {
             await moveRightElement({ id: selectedLeftId }).unwrap();
             onMovedRight();
+            await Promise.all([refetchLeft(), refetchRight()]);
         }
-        catch {}
+        catch { return; }
     }
 
     async function moveLeft() {
@@ -33,20 +23,21 @@ export function ControlButtons({ selectedLeftId, refetchLeft, onMovedRight, sele
         try {
             await moveLeftElement({ id: selectedRightId }).unwrap();
             onMovedLeft();
+            await Promise.all([refetchLeft(), refetchRight()]);
         }
-        catch {}
+        catch { return; }
     }
 
     return (
         <>
-            <button type="submit"
+            <button type="button"
                     onClick={moveRight}
                     disabled={selectedLeftId === null || loadingLeft}
             >
                 {'=>'}
             </button>
 
-            <button type="submit"
+            <button type="button"
                     onClick={moveLeft}
                     disabled={selectedRightId === null || loadingRight}
             >

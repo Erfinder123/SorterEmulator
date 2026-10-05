@@ -1,17 +1,14 @@
+import { useScrollList } from './useScrollList.js';
 import { useState } from 'react';
 import { useAddElementMutation } from "./api/baseApi.js";
 
-export function BaseContainer({ elements, selectedId, onSelect, onLoadMore }) {
+export function BaseContainer({ elements, selectedId, onSelect, onLoadMore, onLoadPrevious, direction, pageVersion, isFetching, onAdded }) {
     const [id, setId] = useState('');
     const [addElementMutation] = useAddElementMutation();
 
-    function handleScroll(event) {
-        const { scrollTop, clientHeight, scrollHeight } = event.currentTarget;
-
-        if (scrollTop + clientHeight >= scrollHeight - 40) {
-            onLoadMore();
-        }
-    }
+    const { listRef, handleScroll, handleWheel } = useScrollList({
+        onLoadMore, onLoadPrevious, direction, pageVersion, isFetching,
+    });
 
     async function addElement(event) {
         event.preventDefault();
@@ -19,9 +16,10 @@ export function BaseContainer({ elements, selectedId, onSelect, onLoadMore }) {
         const value = id.trim().replace(/^0+/, '');
         if (value === "") return;
 
+        setId('');
         try {
             await addElementMutation({ id: value }).unwrap();
-            setId('');
+            await onAdded();
         }
         catch {
             setId('Не удалось добавить элемент');
@@ -47,7 +45,7 @@ export function BaseContainer({ elements, selectedId, onSelect, onLoadMore }) {
                 />
                 <button type="submit">Добавить</button>
             </form>
-            <div className="elements-list" onScroll={handleScroll}>
+            <div className="elements-list" ref={listRef} onScroll={handleScroll} onWheel={handleWheel}>
                 {elements.map(element => (
                     <div
                         className={`element-row${selectedId === element.id ? ' selected' : ''}`}

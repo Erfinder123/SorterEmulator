@@ -1,17 +1,14 @@
+import { useScrollList } from './useScrollList.js';
 import { useRef } from 'react';
 import { useSortElementsMutation } from './api/sorterApi.js';
 
-export function SortedContainer({ elements, selectedId, onSelect, onLoadMore }) {
+export function SortedContainer({ elements, selectedId, onSelect, onLoadMore, onLoadPrevious, direction, pageVersion, isFetching, onSorted }) {
     const draggId = useRef(null);
     const [sortElement, { isLoading }] = useSortElementsMutation();
 
-    function handleScroll(event) {
-        const { scrollTop, clientHeight, scrollHeight } = event.currentTarget;
-
-        if (scrollTop + clientHeight >= scrollHeight - 40) {
-            onLoadMore();
-        }
-    }
+    const { listRef, handleScroll, handleWheel } = useScrollList({
+        onLoadMore, onLoadPrevious, direction, pageVersion, isFetching,
+    });
 
     async function dropElement(event, lastOneId) {
         event.preventDefault();
@@ -23,13 +20,15 @@ export function SortedContainer({ elements, selectedId, onSelect, onLoadMore }) 
 
         try {
             await sortElement({id, lastOneId}).unwrap();
-        } catch {}
+            await onSorted();
+        }
+        catch { return; }
     }
 
     return (
         <>
             <h2>Отсортированный список</h2>
-            <div className="elements-list1" onScroll={handleScroll}>
+            <div className="elements-list1" ref={listRef} onScroll={handleScroll} onWheel={handleWheel}>
                 {elements.map(element => (
                     <div
                         className={`element-row${selectedId === element.id ? ' selected' : ''}`}

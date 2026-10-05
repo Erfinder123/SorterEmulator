@@ -6,20 +6,10 @@ export const sorterApi = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: '/right/',}),
     tagTypes: ["Element"],
     endpoints: (builder) => ({
-        getAll: builder.infiniteQuery({
-            query: ({ pageParam }) => ({
-                infiniteQueryOptions: {
-                    initialPageParam: 0,
-                    getNextPageParam: (lastPage, allPages, lastPageParam) =>
-                        lastPage.length === 20
-                            ? lastPageParam + 20
-                            : undefined,
-                },
-                url: '',
-                method: "GET",
-                params: { offset: pageParam },
-            }),
-            providesTags: ["Element"],
+        getPage: builder.query({
+            query: params => ({ url: '', params }),
+            providesTags: ['Element'],
+            keepUnusedDataFor: 0,
         }),
 
         moveElement: builder.mutation({
@@ -29,7 +19,6 @@ export const sorterApi = createApi({
                 body: element,
                 responseHandler: 'text'
             }),
-            invalidatesTags: ["Element"],
         }),
 
         sortElements: builder.mutation({
@@ -40,13 +29,12 @@ export const sorterApi = createApi({
                 body: { id: lastOneId },
                 responseHandler: 'text'
             }),
-            invalidatesTags: ["Element"],
         })
     }),
 });
 
 export const {
-    useGetAllInfiniteQuery,
+    useLazyGetPageQuery,
     useMoveElementMutation,
     useSortElementsMutation,
 } = sorterApi
